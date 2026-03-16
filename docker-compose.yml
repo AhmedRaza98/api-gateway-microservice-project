@@ -1,0 +1,54 @@
+version: '3.9'
+
+services:
+  gateway:
+    build: ./gateway
+    container_name: api-gateway
+    ports:
+      - "8000:8000"
+    environment:
+      JWT_SECRET: supersecretkey
+      AUTH_SERVICE_URL: http://auth-service:8001
+      CATALOG_SERVICE_URLS: http://catalog-service-1:8002,http://catalog-service-2:8002
+      ORDER_SERVICE_URLS: http://order-service-1:8003,http://order-service-2:8003
+      RATE_LIMIT_REQUESTS: 20
+      RATE_LIMIT_WINDOW_SECONDS: 60
+    depends_on:
+      - auth-service
+      - catalog-service-1
+      - catalog-service-2
+      - order-service-1
+      - order-service-2
+
+  auth-service:
+    build: ./services/auth
+    container_name: auth-service
+    environment:
+      JWT_SECRET: supersecretkey
+      INSTANCE_NAME: auth-service
+
+  catalog-service-1:
+    build: ./services/catalog
+    container_name: catalog-service-1
+    environment:
+      INSTANCE_NAME: catalog-service-1
+
+  catalog-service-2:
+    build: ./services/catalog
+    container_name: catalog-service-2
+    environment:
+      INSTANCE_NAME: catalog-service-2
+
+  order-service-1:
+    build: ./services/orders
+    container_name: order-service-1
+    environment:
+      INSTANCE_NAME: order-service-1
+      FAIL_MODE: "false"
+
+  order-service-2:
+    build: ./services/orders
+    container_name: order-service-2
+    environment:
+      INSTANCE_NAME: order-service-2
+      FAIL_MODE: "false"
